@@ -1,4 +1,11 @@
 import re
+import os
+import openai
+
+# Устанавливаем ключ OpenAI из переменных окружения
+openai.api_key = os.getenv("OPENAI_API_KEY")
+if not openai.api_key:
+    raise ValueError("OPENAI_API_KEY not set in environment variables")
 
 def clean_recognized_text(text: str) -> str:
     """
@@ -75,7 +82,7 @@ If it is a blood test, reply with only one word "YES". If the text does not pert
         max_tokens=10
     )
     answer = response.choices[0].message.content.strip().lower()
-    return answer == "yes"
+    return "yes" in answer
 
 def extract_text_from_file(file_bytes: bytes) -> str:
     """
