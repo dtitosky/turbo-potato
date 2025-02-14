@@ -85,15 +85,15 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     save_blood_test(user_id, test_text)
 
-    # Получаем анализ (резюме) от ChatGPT на основе распознанного текста
+    # Получаем структурированный (краткий) анализ от ChatGPT
     analysis_result = get_analysis_from_chatgpt(test_text)
 
-    # Далее передаём анализ в ChatGPT для получения подробных рекомендаций
+    # Передаём структурированный анализ для получения подробных рекомендаций
     recommendations = get_recommendations_from_chatgpt(analysis_result)
 
     result_msg = (
-        f"Анализ:\n{analysis_result}\n\n"
-        f"Рекомендации:\n{recommendations}"
+        f"На основе загруженных данных анализа сформирован следующий краткий анализ:\n{analysis_result}\n\n"
+        f"Рекомендации по дальнейшим действиям, питанию и образу жизни:\n{recommendations}"
     )
     await chunked_send_text(update, context, result_msg)
 
@@ -119,15 +119,15 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     save_blood_test(user_id, test_text)
 
-    # Получаем анализ (резюме) от ChatGPT на основе распознанного текста
+    # Получаем структурированный (краткий) анализ от ChatGPT
     analysis_result = get_analysis_from_chatgpt(test_text)
 
-    # Передаём анализ в ChatGPT для получения подробных рекомендаций
+    # Передаём структурированный анализ для получения подробных рекомендаций
     recommendations = get_recommendations_from_chatgpt(analysis_result)
 
     result_msg = (
-        f"Анализ:\n{analysis_result}\n\n"
-        f"Рекомендации:\n{recommendations}"
+        f"На основе загруженных данных анализа сформирован следующий краткий анализ:\n{analysis_result}\n\n"
+        f"Рекомендации по дальнейшим действиям, питанию и образу жизни:\n{recommendations}"
     )
     await chunked_send_text(update, context, result_msg)
 
