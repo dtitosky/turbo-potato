@@ -49,11 +49,18 @@ def get_text_from_image_via_chatgpt_vision(image_bytes: bytes) -> str:
         response = openai.ChatCompletion.create(
             model="gpt-4-vision",
             messages=[
-                {"role": "system", "content": "Ты являешься экспертом по визуальному восприятию. Извлеки и верни текст, присутствующий на изображении."}
+                {"role": "system", "content": "Извлеки и выведи текст, присутствующий на изображении."}
             ],
             # Гипотетический способ передачи изображения, который может отличаться
             files=[("image", image_bytes)]
         )
-        return response.choices[0].message.content.strip()
+        result = response.choices[0].message.content.strip()
+        # Очищаем результат от служебных последовательностей типа (cid:XX)
+        import re
+        result = re.sub(r"[\(]?cid:\d+[\)]?", "", result)
+        return result
     except Exception as e:
+        error_str = str(e)
+        if "maximum context length" in error_str:
+            return "Ошибка: Размер входных данных превышает допустимый лимит. Пожалуйста, загрузите файл меньшего размера или с меньшим разрешением."
         return f"Ошибка при извлечении текста с помощью ChatGPT Vision: {e}" 
