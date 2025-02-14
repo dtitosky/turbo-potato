@@ -2,76 +2,71 @@ import re
 
 def clean_recognized_text(text: str) -> str:
     """
-    Удаляет из текста все последовательности вида (cid:число).
-    Если после удаления текст оказывается пустым, возвращает исходный текст.
+    Removes all sequences of the form (cid:number) from the text.
+    If the resulting text is empty while the original text is not, returns the original text.
     """
     cleaned = re.sub(r'\(cid:\d+\)', ' ', text).strip()
     if not cleaned and text.strip():
         return text
     return cleaned
 
-@@ def get_analysis_from_chatgpt(recognized_text: str) -> str:
+def get_analysis_from_chatgpt(recognized_text: str) -> str:
     cleaned_text = clean_recognized_text(recognized_text)
-    prompt = f"""Ниже приведён текст анализа крови, полученный посредством OCR:
+    prompt = f"""Below is the text of a blood test scan obtained via OCR:
 {cleaned_text}
 
-Пожалуйста, проанализируй эти данные и сформируй структурированный отчёт с форматированием в Markdown на русском языке. Для этого:
-1. Начни с заголовка уровня 2: "## Краткий структурированный анализ".
-2. Выведи раздел с названием, например, "**Анализ:**", и перечисли только те ключевые показатели, которые присутствуют в данных, в виде маркированного списка. Для каждого показателя укажи его значение и, если имеется, нормальные диапазоны в скобках. Не выводи показатели, которых нет в предоставленных данных.
-3. Добавь раздел "Вывод:" под списком, где кратко сформулируй общий результат анализа, основываясь исключительно на информации из текста.
-Пожалуйста, не добавляй лишнего текста. Ответ должен быть полностью на русском языке.
+Please analyze this data and generate a structured report in Markdown format in English. To do this:
+1. Start with a level 2 header: "## Brief Structured Analysis".
+2. Output a section titled, for example, "**Analysis:**", and list only the key indicators that are present in the data as a bullet list. For each indicator, specify its value and, if available, the normal ranges in parentheses. Do not include indicators that are not present in the provided data.
+3. Add a section titled "Conclusion:" below the list, where you briefly summarize the overall results based solely on the information in the text.
+Please do not add any extraneous text. The response must be entirely in English.
 """
 
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "Ты являешься экспертом в области анализа крови. Дай подробный и структурированный анализ данных."},
+            {"role": "system", "content": "You are an expert in medical diagnostics. Deny a detailed and structured analysis of the data."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.7,
         max_tokens=800
     )
 
-@@ def get_recommendations_from_chatgpt(analysis_text: str) -> str:
--    prompt = f"""На основе следующего анализа данных анализа крови:
--{analysis_text}
--
--Дай подробные рекомендации по дальнейшим действиям, питанию и образу жизни. Обрати особое внимание на секцию, посвящённую питанию: обязательно используй эмодзи для усиления визуальной привлекательности – например, перед рекомендациями по фруктам укажи 🍏, для овощей – 🥦, для приема пищи – 🍽️, а также добавляй другие релевантные эмодзи. Структурируй рекомендации в виде аккуратно оформленного списка, где каждый пункт начинается с эмодзи.
--""" 
-+    prompt = f"""На основе следующего анализа данных анализа крови:
+def get_recommendations_from_chatgpt(analysis_text: str) -> str:
+    prompt = f"""Based on the following blood test analysis data:
 {analysis_text}
 
-Дай подробные рекомендации по дальнейшим действиям, питанию и образу жизни. Ответ сформируй в формате Markdown, где каждый пункт начинается с эмодзи. Особое внимание удели секции рекомендаций по питанию: обязательно используй эмодзи для усиления визуальной привлекательности – например:
-- 🍏 перед рекомендациями по фруктам,
-- 🥦 перед рекомендациями по овощам,
-- 🍽️ перед рекомендациями по приему пищи,
-- 💧 перед рекомендациями по гидратации,
-а также используй другие релевантные эмодзи, где это необходимо.
+Provide detailed recommendations for further actions, nutrition, and lifestyle. Format your answer in Markdown, where each item begins with an emoji. Pay special attention to the nutrition recommendations; for example:
+- 🍏 before recommendations for fruits,
+- 🥦 before recommendations for vegetables,
+- 🍽️ before recommendations for meals,
+- 💧 before recommendations for hydration,
+and use other relevant emojis as needed.
 
-Структурируй рекомендации в виде аккуратно оформленного списка, где каждый пункт начинается с соответствующего эмодзи. Пожалуйста, не добавляй лишнего текста.
+Structure the recommendations as a neatly formatted list, with each item starting with the appropriate emoji. Please do not add any extraneous text.
 """
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Ты являешься экспертом по здоровью и питанию. Дай рекомендации на основе анализа данных."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=800
-        )
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are an expert in health and nutrition. Deny recommendations based on analysis data."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.7,
+        max_tokens=800
+    )
 
-@@ def is_blood_test(recognized_text: str) -> bool:
+def is_blood_test(recognized_text: str) -> bool:
     cleaned_text = clean_recognized_text(recognized_text)
-    prompt = f"""Определи, относится ли следующий текст к анализам крови:
+    prompt = f"""Determine whether the following text pertains to blood tests:
 {cleaned_text}
 
-Если это анализ крови, ответь только одним словом "ДА". Если текст не является анализом крови, ответь только одним словом "НЕТ".
+If it is a blood test, reply with only one word "YES". If the text does not pertain to blood tests, reply with only one word "NO".
 """
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "Ты эксперт в области медицинской диагностики. Отвечай строго одним словом: только 'ДА' или 'НЕТ'."},
+            {"role": "system", "content": "You are an expert in medical diagnostics. Answer strictly with one word: only 'YES' or 'NO'."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.0,
