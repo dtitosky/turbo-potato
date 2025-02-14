@@ -21,13 +21,20 @@ def create_tables():
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            # Ваш SQL код для создания таблиц
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id SERIAL PRIMARY KEY,
                     telegram_id BIGINT UNIQUE NOT NULL,
                     username TEXT
-                )
+                );
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS blood_tests (
+                    id SERIAL PRIMARY KEY,
+                    user_id BIGINT NOT NULL,
+                    test_text TEXT,
+                    timestamp TIMESTAMPTZ DEFAULT NOW()
+                );
             """)
             conn.commit()
     finally:
@@ -38,13 +45,13 @@ def save_blood_test(user_id: int, test_text: str):
     Сохраняет распознанный текст анализа крови в БД.
     """
     conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO blood_tests (user_id, test_text)
-        VALUES (%s, %s)
-    """, (user_id, test_text))
-    conn.commit()
-    cur.close()
+    with conn.cursor() as cur:
+        cur.execute("""
+            INSERT INTO blood_tests (user_id, test_text)
+            VALUES (%s, %s)
+        """, (user_id, test_text))
+        conn.commit()
+
     conn.close()
 
 def get_user_tests(user_id: int):
@@ -52,13 +59,13 @@ def get_user_tests(user_id: int):
     Возвращает все анализы пользователя.
     """
     conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT * FROM blood_tests
-        WHERE user_id = %s
-        ORDER BY timestamp DESC
-    """, (user_id,))
-    rows = cur.fetchall()
-    cur.close()
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT * FROM blood_tests
+            WHERE user_id = %s
+            ORDER BY timestamp DESC
+        """, (user_id,))
+        rows = cur.fetchall()
+
     conn.close()
     return rows 
