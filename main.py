@@ -18,7 +18,7 @@ from io import BytesIO
 from config import API_TOKEN
 from analysis import analyze_blood_data
 from database import create_tables, save_blood_test, get_user_tests
-from chatgpt_client import get_analysis_from_chatgpt, get_recommendations_from_chatgpt, is_blood_test
+from chatgpt_client import get_analysis_from_chatgpt, get_recommendations_from_chatgpt
 
 # Логирование
 logging.basicConfig(
@@ -81,11 +81,6 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткий файл.")
         return
 
-    # Проверка, что загруженные данные относятся к анализу крови
-    if not is_blood_test(test_text):
-        await update.message.reply_text("Загруженный файл не содержит данных анализа крови. Пожалуйста, загрузите анализ крови.")
-        return
-
     # Сохраняем полученные данные (при необходимости)
     user_id = update.effective_user.id
     save_blood_test(user_id, test_text)
@@ -118,11 +113,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not test_text.strip():
         await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткое изображение.")
-        return
-
-    # Проверка, что загруженные данные относятся к анализу крови
-    if not is_blood_test(test_text):
-        await update.message.reply_text("Загруженное изображение не содержит данных анализа крови. Пожалуйста, загрузите анализ крови.")
         return
 
     # Сохраняем данные (при необходимости)

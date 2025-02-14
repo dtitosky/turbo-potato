@@ -1,100 +1,27 @@
-import re
-import os
-import openai
+@@ def get_analysis_from_chatgpt(recognized_text: str) -> str:
+-    prompt = f"""Ниже приведён текст анализа крови, полученный посредством OCR:
+-{recognized_text}
+-
+-Пожалуйста, проанализируй данные и выведи их в структурированном виде. Выдели ключевые показатели (например: Гемоглобин, Глюкоза, Лейкоциты, Тромбоциты и т.д.) и представь результат в виде маркированного списка, где для каждого показателя указано его значение (если показатель отсутствует в данных, укажи "не указано"). Обязательно начни ответ со строки "Краткий структурированный анализ:".
+-"""
++    prompt = f"""Ниже приведён текст анализа крови, полученный посредством OCR:
+{recognized_text}
 
-# Устанавливаем ключ OpenAI из переменных окружения
-openai.api_key = os.getenv("OPENAI_API_KEY")
-if not openai.api_key:
-    raise ValueError("OPENAI_API_KEY not set in environment variables")
-
-def clean_recognized_text(text: str) -> str:
-    """
-    Removes all sequences of the form (cid:number) from the text.
-    If the resulting text is empty while the original text is not, returns the original text.
-    """
-    cleaned = re.sub(r'\(cid:\d+\)', ' ', text).strip()
-    if not cleaned and text.strip():
-        return text
-    return cleaned
-
-def get_analysis_from_chatgpt(recognized_text: str) -> str:
-    cleaned_text = clean_recognized_text(recognized_text)
-    prompt = f"""Below is the text of a blood test scan obtained via OCR:
-{cleaned_text}
-
-Please analyze this data and generate a structured report in Markdown format in English. To do this:
-1. Start with a level 2 header: "## Brief Structured Analysis".
-2. Output a section titled, for example, "**Analysis:**", and list only the key indicators that are present in the data as a bullet list. For each indicator, specify its value and, if available, the normal ranges in parentheses. Do not include indicators that are not present in the provided data.
-3. Add a section titled "Conclusion:" below the list, where you briefly summarize the overall results based solely on the information in the text.
-Please do not add any extraneous text. The response must be entirely in English.
+Пожалуйста, проанализируй эти данные и сформируй структурированный отчёт с форматированием в Markdown. Для этого:
+1. Начни с заголовка уровня 2: "## Краткий структурированный анализ".
+2. Затем выведи раздел с названием, например, "**Анализ мочи:**", и перечисли ключевые показатели в виде маркированного списка. Для каждого показателя укажи его значение (если показатель отсутствует, напиши "не указано"). При наличии нормальных диапазонов добавь их в скобках.
+3. Добавь раздел "Вывод:" под списком, где кратко сформулируй общий результат анализа.
+Пожалуйста, не добавляй лишнего текста.
 """
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are an expert in medical diagnostics. Provide a detailed and structured analysis of the data."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.7,
-        max_tokens=800
-    )
-    return response.choices[0].message.content.strip()
-
-def get_recommendations_from_chatgpt(analysis_text: str) -> str:
-    prompt = f"""Based on the following blood test analysis data:
+@@ def get_recommendations_from_chatgpt(analysis_text: str) -> str:
+-    prompt = f"""На основе следующего анализа данных анализа крови:
+-{analysis_text}
+-
+-Дай подробные рекомендации по дальнейшим действиям, питанию и образу жизни. Особое внимание удели рекомендациям по питанию: добавь достаточное количество эмодзи (например, 🍏, 🥦, 🍽️, 🥗 и т.д.), чтобы сделать текст более легкочитаемым. Структурируй рекомендации в виде аккуратно оформленного списка.
+-""" 
++    prompt = f"""На основе следующего анализа данных анализа крови:
 {analysis_text}
 
-Provide detailed recommendations for further actions, nutrition, and lifestyle. Format your answer in Markdown, where each item begins with an emoji. Pay special attention to the nutrition recommendations; for example:
-- 🍏 before recommendations for fruits,
-- 🥦 before recommendations for vegetables,
-- 🍽️ before recommendations for meals,
-- 💧 before recommendations for hydration,
-and use other relevant emojis as needed.
-
-Structure the recommendations as a neatly formatted list, with each item starting with the appropriate emoji. Please do not add any extraneous text.
-"""
-
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are an expert in health and nutrition. Provide recommendations based on the analysis data."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.7,
-        max_tokens=800
-    )
-    return response.choices[0].message.content.strip()
-
-def is_blood_test(recognized_text: str) -> bool:
-    cleaned_text = clean_recognized_text(recognized_text)
-    prompt = f"""Determine whether the following text pertains to blood tests:
-{cleaned_text}
-
-If it is a blood test, reply with only one word "YES". If the text does not pertain to blood tests, reply with only one word "NO".
-"""
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are an expert in medical diagnostics. Answer strictly with one word: only 'YES' or 'NO'."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.0,
-        max_tokens=10
-    )
-    answer = response.choices[0].message.content.strip().lower()
-    return "yes" in answer
-
-def extract_text_from_file(file_bytes: bytes) -> str:
-    """
-    Extracts text from the given file bytes using the GPT‑4 Vision model.
-    """
-    try:
-        response = openai.Vision.create(
-            model="gpt-4-vision",
-            image=file_bytes,
-        )
-        # Предполагаем, что ответ содержит ключ "extracted_text" с распознанным текстом.
-        extracted_text = response.get("extracted_text", "")
-        return extracted_text
-    except Exception as e:
-        return f"Error extracting text: {e}"
+Дай подробные рекомендации по дальнейшим действиям, питанию и образу жизни. Обрати особое внимание на секцию, посвящённую питанию: обязательно используй эмодзи для усиления визуальной привлекательности – например, перед рекомендациями по фруктам укажи 🍏, для овощей – 🥦, для приема пищи – 🍽️, а также добавляй другие релевантные эмодзи. Структурируй рекомендации в виде аккуратно оформленного списка, где каждый пункт начинается с эмодзи.
+""" 
