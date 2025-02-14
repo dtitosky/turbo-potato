@@ -36,6 +36,17 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "сохраню в базу и дам краткие рекомендации."
     )
 
+def chunked_send_text(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str) -> None:
+    """
+    Делим длинный текст на несколько сообщений, если он превышает 4096 символов.
+    """
+    chunk_size = 4096
+    for i in range(0, len(text), chunk_size):
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=text[i : i + chunk_size]
+        )
+
 async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Скачиваем документ (PDF или изображение)
     document = update.message.document
@@ -64,7 +75,8 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Выполняем простой анализ и отправляем результаты
     analysis_result = analyze_blood_data(test_text)
-    await update.message.reply_text(f"Распознанный текст:\n{test_text}\n\nАнализ:\n{analysis_result}")
+    result_msg = f"Распознанный текст:\n{test_text}\n\nАнализ:\n{analysis_result}"
+    chunked_send_text(update, context, result_msg)
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Если пользователь присылает фото напрямую (без документа), обрабатываем аналогично
@@ -81,7 +93,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Анализ
     analysis_result = analyze_blood_data(test_text)
-    await update.message.reply_text(f"Распознанный текст:\n{test_text}\n\nАнализ:\n{analysis_result}")
+    result_msg = f"Распознанный текст:\n{test_text}\n\nАнализ:\n{analysis_result}"
+    chunked_send_text(update, context, result_msg)
 
 async def get_tests_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Возвращает все анализы пользователя
