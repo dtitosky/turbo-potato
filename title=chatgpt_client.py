@@ -72,3 +72,18 @@ If it is a blood test, reply with only one word "YES". If the text does not pert
         temperature=0.0,
         max_tokens=10
     )
+
+def extract_text_from_file(file_bytes: bytes) -> str:
+    """
+    Extracts text from the given file bytes using the GPT‑4 Vision model.
+    """
+    try:
+        response = openai.Vision.create(
+            model="gpt-4-vision",
+            image=file_bytes,
+        )
+        # Предполагаем, что ответ содержит ключ "extracted_text" с распознанным текстом.
+        extracted_text = response.get("extracted_text", "")
+        return extracted_text
+    except Exception as e:
+        return f"Error extracting text: {e}"
