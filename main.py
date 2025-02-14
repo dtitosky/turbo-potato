@@ -18,6 +18,7 @@ from io import BytesIO
 from config import API_TOKEN
 from analysis import analyze_blood_data
 from database import create_tables, save_blood_test, get_user_tests
+from chatgpt_client import get_analysis_from_chatgpt
 
 # Логирование
 logging.basicConfig(
@@ -73,9 +74,16 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     save_blood_test(user_id, test_text)
 
-    # Выполняем простой анализ и отправляем результаты
+    # Выполняем системный анализ (локальный, как раньше)
     analysis_result = analyze_blood_data(test_text)
-    result_msg = f"Распознанный текст:\n{test_text}\n\nАнализ:\n{analysis_result}"
+    # Получаем анализ от ChatGPT
+    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
+
+    result_msg = (
+        f"Распознанный текст:\n{test_text}\n\n"
+        f"Системный анализ:\n{analysis_result}\n\n"
+        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
+    )
     await chunked_send_text(update, context, result_msg)
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -93,7 +101,14 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Анализ
     analysis_result = analyze_blood_data(test_text)
-    result_msg = f"Распознанный текст:\n{test_text}\n\nАнализ:\n{analysis_result}"
+    from chatgpt_client import get_analysis_from_chatgpt
+    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
+
+    result_msg = (
+        f"Распознанный текст:\n{test_text}\n\n"
+        f"Системный анализ:\n{analysis_result}\n\n"
+        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
+    )
     await chunked_send_text(update, context, result_msg)
 
 async def get_tests_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
