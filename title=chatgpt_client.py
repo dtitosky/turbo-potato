@@ -42,8 +42,10 @@ def truncate_text(text: str, max_chars: int = 5000) -> str:
 
 def get_text_from_image_via_chatgpt_vision(image_bytes: bytes) -> str:
     """
-    Гипотетическая функция для извлечения текста из изображения с использованием ChatGPT Vision.
-    На данный момент публичного API для ChatGPT Vision нет, поэтому эта функция является примером.
+    Гипотетическая функция для извлечения текста из изображения или PDF-файла с использованием модели ChatGPT Vision.
+    Файл передаётся напрямую через параметр `files` в запросе к модели.
+    
+    Если размер входных данных превышает допустимый лимит, возвращается соответствующее сообщение.
     """
     try:
         response = openai.ChatCompletion.create(
@@ -51,7 +53,7 @@ def get_text_from_image_via_chatgpt_vision(image_bytes: bytes) -> str:
             messages=[
                 {"role": "system", "content": "Извлеки и выведи текст, присутствующий на изображении."}
             ],
-            # Гипотетический способ передачи изображения, который может отличаться
+            # Прямая передача файла в модель Vision
             files=[("image", image_bytes)]
         )
         result = response.choices[0].message.content.strip()
