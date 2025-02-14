@@ -25,12 +25,13 @@ Please do not add any extraneous text. The response must be entirely in English.
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are an expert in medical diagnostics. Deny a detailed and structured analysis of the data."},
+            {"role": "system", "content": "You are an expert in medical diagnostics. Provide a detailed and structured analysis of the data."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.7,
         max_tokens=800
     )
+    return response.choices[0].message.content.strip()
 
 def get_recommendations_from_chatgpt(analysis_text: str) -> str:
     prompt = f"""Based on the following blood test analysis data:
@@ -49,12 +50,13 @@ Structure the recommendations as a neatly formatted list, with each item startin
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are an expert in health and nutrition. Deny recommendations based on analysis data."},
+            {"role": "system", "content": "You are an expert in health and nutrition. Provide recommendations based on the analysis data."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.7,
         max_tokens=800
     )
+    return response.choices[0].message.content.strip()
 
 def is_blood_test(recognized_text: str) -> bool:
     cleaned_text = clean_recognized_text(recognized_text)
