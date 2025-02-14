@@ -3,8 +3,12 @@ import re
 def clean_recognized_text(text: str) -> str:
     """
     Удаляет из текста все последовательности вида (cid:число).
+    Если после удаления текст оказывается пустым, возвращает исходный текст.
     """
-    return re.sub(r'\(cid:\d+\)', '', text).strip()
+    cleaned = re.sub(r'\(cid:\d+\)', ' ', text).strip()
+    if not cleaned and text.strip():
+        return text
+    return cleaned
 
 @@ def get_analysis_from_chatgpt(recognized_text: str) -> str:
     cleaned_text = clean_recognized_text(recognized_text)
