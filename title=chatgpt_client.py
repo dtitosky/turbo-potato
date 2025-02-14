@@ -51,7 +51,7 @@ def get_text_from_image_via_chatgpt_vision(image_bytes: bytes) -> str:
         response = openai.ChatCompletion.create(
             model="gpt-4-vision",
             messages=[
-                {"role": "system", "content": "Извлеки и выведи текст, присутствующий на изображении."}
+                {"role": "system", "content": "Распознай текст на изображении и выведи его без какого-либо анализа или дополнений. Верни только текст, точно как он присутствует на изображении."}
             ],
             # Прямая передача файла в модель Vision
             files=[("image", image_bytes)]
