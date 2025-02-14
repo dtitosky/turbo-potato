@@ -4,8 +4,8 @@
     test_text = get_text_from_image_via_chatgpt_vision(file_bytes)
     if not test_text.strip():
         await update.message.reply_text("Не удалось распознать текст с изображения через ChatGPT Vision.")
-        return 
-    # Отправляем распознанный текст пользователю
+        return
+    # Отправляем пользователю именно тот текст, который вернула модель
     await update.message.reply_text(f"Распознанный текст:\n{test_text}")
 
 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -17,6 +17,6 @@
     test_text = get_text_from_image_via_chatgpt_vision(file_bytes)
     if not test_text.strip():
         await update.message.reply_text("Не удалось распознать текст с документа через ChatGPT Vision.")
-        return 
+        return
     # Отправляем распознанный текст пользователю
     await update.message.reply_text(f"Распознанный текст:\n{test_text}")
