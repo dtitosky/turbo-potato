@@ -72,6 +72,8 @@ If it is a blood test, reply with only one word "YES". If the text does not pert
         temperature=0.0,
         max_tokens=10
     )
+    answer = response.choices[0].message.content.strip().lower()
+    return answer == "yes"
 
 def extract_text_from_file(file_bytes: bytes) -> str:
     """
