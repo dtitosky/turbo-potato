@@ -16,7 +16,7 @@ def get_connection():
 
 def create_tables():
     """
-    Создаёт таблицы, если их нет. Выполнять при старте приложения.
+    Создаёт необходимые таблицы, если их ещё нет.
     """
     conn = get_connection()
     try:
@@ -51,7 +51,6 @@ def save_blood_test(user_id: int, test_text: str):
             VALUES (%s, %s)
         """, (user_id, test_text))
         conn.commit()
-
     conn.close()
 
 def get_user_tests(user_id: int):
@@ -66,6 +65,5 @@ def get_user_tests(user_id: int):
             ORDER BY timestamp DESC
         """, (user_id,))
         rows = cur.fetchall()
-
     conn.close()
     return rows 

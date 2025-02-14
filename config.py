@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 
+# Загружаем переменные из .env (если они присутствуют) – на Railway переменные задаются через интерфейс
 load_dotenv()
 
 API_TOKEN = os.getenv("API_TOKEN")
@@ -16,4 +17,5 @@ if not DATABASE_URL:
 
 # Можно добавить другие настройки, например, ключи для OCR, REST API, и т.д. 
 
-print("DEBUG ENV:", os.environ) 
+# Для отладки можно вывести доступные переменные (не рекомендуется в продакшене)
+#print("DEBUG ENV:", os.environ) 

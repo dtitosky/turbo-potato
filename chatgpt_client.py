@@ -1,7 +1,7 @@
 import os
 import openai
 
-# Получаем ключ OpenAI из переменных окружения.
+# Устанавливаем ключ OpenAI из переменных окружения
 openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     raise ValueError("OPENAI_API_KEY не установлен в переменных окружения")
@@ -9,11 +9,10 @@ if not openai.api_key:
 def get_analysis_from_chatgpt(recognized_text: str) -> str:
     """
     Отправляет распознанный текст в OpenAI ChatCompletion и возвращает результат.
-    В prompt можно задать нужный вам формат ответа.
+    Формат запроса (prompt) можно подстроить под нужный формат ответа.
     """
-    # Формируем запрос: можно подстроить под ваш формат.
     prompt = f"""Проанализируй следующие данные анализа крови.
-    
+
 Требуемый формат ответа:
 - Общий вывод.
 - Рекомендации по питанию.
