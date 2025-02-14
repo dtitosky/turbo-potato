@@ -1,0 +1,2 @@
+# После получения file_bytes и применения OCR / pdfplumber:
+print("Распознанный текст (debug):", repr(test_text)) 
