@@ -1,0 +1,19 @@
+async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # ... код для скачивания и распознавания файла ...
+    # Получаем текст из документа в переменной test_text
+    if not test_text.strip():
+        await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткое изображение или PDF файл.")
+        return
+
+    # Выполняем системный анализ (локальный, как раньше)
+    analysis_result = analyze_blood_data(test_text)
+    # Получаем анализ от ChatGPT
+    from chatgpt_client import get_analysis_from_chatgpt
+    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
+
+    result_msg = (
+        f"Распознанный текст:\n{test_text}\n\n"
+        f"Системный анализ:\n{analysis_result}\n\n"
+        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
+    )
+    await chunked_send_text(update, context, result_msg) 

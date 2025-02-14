@@ -1,0 +1,16 @@
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # ... код для скачивания и распознавания фото ...
+    if not test_text.strip():
+        await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткое изображение.")
+        return
+
+    analysis_result = analyze_blood_data(test_text)
+    from chatgpt_client import get_analysis_from_chatgpt
+    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
+
+    result_msg = (
+        f"Распознанный текст:\n{test_text}\n\n"
+        f"Системный анализ:\n{analysis_result}\n\n"
+        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
+    )
+    await chunked_send_text(update, context, result_msg) 
