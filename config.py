@@ -15,3 +15,5 @@ if not DATABASE_URL:
     raise ValueError("DATABASE_URL не установлен в переменных окружения")
 
 # Можно добавить другие настройки, например, ключи для OCR, REST API, и т.д. 
+
+print("DEBUG ENV:", os.environ) 
