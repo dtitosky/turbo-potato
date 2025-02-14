@@ -7,6 +7,23 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Error processing file: {e}")
         return
 
+    # 1. Send recognized (OCR) text as first message
+    await chunked_send_text(update, context, f"Recognized Text (OCR result):\n\n{test_text}")
+
+    # 2. Check if text was recognized and belongs to a blood test
+    if not test_text.strip():
+        await update.message.reply_text("No text recognized from the uploaded file. Please upload a clearer file.")
+        return
+
+    if not is_blood_test(test_text):
+        await update.message.reply_text("The uploaded file does not seem to contain blood test data. Please upload a proper blood test.")
+        return
+
+    # 3. Get analysis and recommendations
+    analysis_result = get_analysis_from_chatgpt(test_text)
+    recommendations = get_recommendations_from_chatgpt(analysis_result)
+
+    # 4. Send analysis and recommendations as separate messages
     await chunked_send_text(update, context, f"Based on the uploaded test data, here is the brief analysis:\n\n{analysis_result}")
     await chunked_send_text(update, context, f"Recommendations for further actions, nutrition, and lifestyle:\n\n{recommendations}")
 
@@ -16,3 +33,23 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error processing image: {e}")
         return 
+
+    # 1. Send recognized (OCR) text as first message
+    await chunked_send_text(update, context, f"Recognized Text (OCR result):\n\n{test_text}")
+
+    # 2. Check if text was recognized and belongs to a blood test
+    if not test_text.strip():
+        await update.message.reply_text("No text recognized from the uploaded image. Please upload a clearer image.")
+        return
+
+    if not is_blood_test(test_text):
+        await update.message.reply_text("The uploaded image does not seem to contain blood test data. Please upload a proper blood test.")
+        return
+
+    # 3. Get analysis and recommendations
+    analysis_result = get_analysis_from_chatgpt(test_text)
+    recommendations = get_recommendations_from_chatgpt(analysis_result)
+
+    # 4. Send analysis and recommendations as separate messages
+    await chunked_send_text(update, context, f"Based on the uploaded test data, here is the brief analysis:\n\n{analysis_result}")
+    await chunked_send_text(update, context, f"Recommendations for further actions, nutrition, and lifestyle:\n\n{recommendations}") 
