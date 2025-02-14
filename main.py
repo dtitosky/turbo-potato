@@ -18,7 +18,7 @@ from io import BytesIO
 from config import API_TOKEN
 from analysis import analyze_blood_data
 from database import create_tables, save_blood_test, get_user_tests
-from chatgpt_client import get_analysis_from_chatgpt
+from chatgpt_client import get_analysis_from_chatgpt_vision
 
 # Логирование
 logging.basicConfig(
@@ -59,75 +59,38 @@ async def chunked_send_text(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         )
 
 async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Пример кода для скачивания PDF-документа и распознавания текста:
+    # Получаем документ для прямой отправки в ChatGPT Vision
     document = update.message.document
     file_obj = await context.bot.get_file(document.file_id)
     file_bytes = await file_obj.download_as_bytearray()
-
-    test_text = ""
-    try:
-        with pdfplumber.open(BytesIO(file_bytes)) as pdf:
-            for page in pdf.pages:
-                text = page.extract_text() or ""
-                test_text += text + "\n"
-    except Exception as e:
-        await update.message.reply_text(f"Ошибка при обработке PDF: {e}")
-        return
-
-    # Отладочный вывод распознанного текста
-    print("Распознанный текст (debug):", repr(test_text))
-
-    if not test_text.strip():
-        await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткий файл.")
-        return
-
-    # Сохраняем полученные данные
+    file_name = document.file_name
+    print(f"Получен документ: {file_name}, размер: {len(file_bytes)} байт")
+    
+    # Получаем анализ с использованием ChatGPT Vision
+    vision_analysis = get_analysis_from_chatgpt_vision(file_bytes, file_name)
+    
+    # Optionally можно сохранить результат в БД
     user_id = update.effective_user.id
-    save_blood_test(user_id, test_text)
-
-    # Выполняем локальный анализ
-    analysis_result = analyze_blood_data(test_text)
-    # Получаем анализ от ChatGPT
-    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
-
-    result_msg = (
-        f"Распознанный текст:\n{test_text}\n\n"
-        f"Системный анализ:\n{analysis_result}\n\n"
-        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
-    )
+    # save_blood_test(user_id, vision_analysis)
+    
+    result_msg = f"Результат анализа от ChatGPT Vision:\n{vision_analysis}"
     await chunked_send_text(update, context, result_msg)
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Пример кода для скачивания фото и распознавания текста via OCR:
-    photo = update.message.photo[-1]  # выбираем самое большое изображение
+    # Получаем фото для прямой отправки в ChatGPT Vision
+    photo = update.message.photo[-1]
     file_obj = await context.bot.get_file(photo.file_id)
     file_bytes = await file_obj.download_as_bytearray()
-    try:
-        image = Image.open(BytesIO(file_bytes))
-        test_text = pytesseract.image_to_string(image, lang='rus+eng')
-    except Exception as e:
-        await update.message.reply_text(f"Ошибка при обработке изображения: {e}")
-        return
-
-    print("Распознанный текст (debug):", repr(test_text))
-
-    if not test_text.strip():
-        await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткое изображение.")
-        return
-
-    # Сохраняем данные
+    file_name = "photo.jpg"  # Можно задать имя по умолчанию
+    print(f"Получено фото, размер: {len(file_bytes)} байт")
+    
+    # Получаем анализ с использованием ChatGPT Vision
+    vision_analysis = get_analysis_from_chatgpt_vision(file_bytes, file_name)
+    
     user_id = update.effective_user.id
-    save_blood_test(user_id, test_text)
-
-    # Анализируем данные
-    analysis_result = analyze_blood_data(test_text)
-    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
-
-    result_msg = (
-        f"Распознанный текст:\n{test_text}\n\n"
-        f"Системный анализ:\n{analysis_result}\n\n"
-        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
-    )
+    # Optionally можно сохранить результат в БД
+    
+    result_msg = f"Результат анализа от ChatGPT Vision:\n{vision_analysis}"
     await chunked_send_text(update, context, result_msg)
 
 def main():
