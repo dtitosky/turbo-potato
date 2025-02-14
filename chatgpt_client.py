@@ -51,4 +51,33 @@ def get_recommendations_from_chatgpt(analysis_text: str) -> str:
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        return f"Ошибка при обращении к ChatGPT для рекомендаций: {e}" 
+        return f"Ошибка при обращении к ChatGPT для рекомендаций: {e}"
+
+def is_blood_test(recognized_text: str) -> bool:
+    """
+    Определяет, относится ли распознанный текст к анализам крови.
+    Если текст содержит данные анализа крови, ответ должен быть «ДА».
+    В противном случае — «НЕТ».
+    """
+    prompt = f"""Определи, относится ли следующий текст к анализам крови:
+{recognized_text}
+
+Если это анализ крови, ответь коротко "ДА", иначе ответь "НЕТ".
+"""
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Ты эксперт в области медицинской диагностики."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=10
+        )
+        answer = response.choices[0].message.content.strip().lower()
+        if "да" in answer:
+            return True
+        else:
+            return False
+    except Exception as e:
+        return False 
