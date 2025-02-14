@@ -18,7 +18,7 @@ from io import BytesIO
 from config import API_TOKEN
 from analysis import analyze_blood_data
 from database import create_tables, save_blood_test, get_user_tests
-from chatgpt_client import get_analysis_from_chatgpt, get_recommendations_from_chatgpt
+from chatgpt_client import get_analysis_from_chatgpt
 
 # Логирование
 logging.basicConfig(
@@ -81,19 +81,19 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткий файл.")
         return
 
-    # Сохраняем полученные данные (при необходимости)
+    # Сохраняем полученные данные
     user_id = update.effective_user.id
     save_blood_test(user_id, test_text)
 
-    # Получаем структурированный (краткий) анализ от ChatGPT
-    analysis_result = get_analysis_from_chatgpt(test_text)
-
-    # Передаём структурированный анализ для получения подробных рекомендаций
-    recommendations = get_recommendations_from_chatgpt(analysis_result)
+    # Выполняем локальный анализ
+    analysis_result = analyze_blood_data(test_text)
+    # Получаем анализ от ChatGPT
+    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
 
     result_msg = (
-        f"На основе загруженных данных анализа сформирован следующий краткий анализ:\n{analysis_result}\n\n"
-        f"Рекомендации по дальнейшим действиям, питанию и образу жизни:\n{recommendations}"
+        f"Распознанный текст:\n{test_text}\n\n"
+        f"Системный анализ:\n{analysis_result}\n\n"
+        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
     )
     await chunked_send_text(update, context, result_msg)
 
@@ -115,19 +115,18 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткое изображение.")
         return
 
-    # Сохраняем данные (при необходимости)
+    # Сохраняем данные
     user_id = update.effective_user.id
     save_blood_test(user_id, test_text)
 
-    # Получаем структурированный (краткий) анализ от ChatGPT
-    analysis_result = get_analysis_from_chatgpt(test_text)
-
-    # Передаём структурированный анализ для получения подробных рекомендаций
-    recommendations = get_recommendations_from_chatgpt(analysis_result)
+    # Анализируем данные
+    analysis_result = analyze_blood_data(test_text)
+    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
 
     result_msg = (
-        f"На основе загруженных данных анализа сформирован следующий краткий анализ:\n{analysis_result}\n\n"
-        f"Рекомендации по дальнейшим действиям, питанию и образу жизни:\n{recommendations}"
+        f"Распознанный текст:\n{test_text}\n\n"
+        f"Системный анализ:\n{analysis_result}\n\n"
+        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
     )
     await chunked_send_text(update, context, result_msg)
 
