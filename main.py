@@ -18,7 +18,7 @@ from io import BytesIO
 from config import API_TOKEN
 from analysis import analyze_blood_data
 from database import create_tables, save_blood_test, get_user_tests
-from chatgpt_client import get_analysis_from_chatgpt
+from chatgpt_client import get_analysis_from_chatgpt, get_recommendations_from_chatgpt
 
 # Логирование
 logging.basicConfig(
@@ -81,16 +81,19 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткий файл.")
         return
 
-    # Сохраняем полученные данные
+    # Сохраняем полученные данные (при необходимости)
     user_id = update.effective_user.id
     save_blood_test(user_id, test_text)
 
-    # Получаем анализ от ChatGPT
-    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
+    # Получаем анализ (резюме) от ChatGPT на основе распознанного текста
+    analysis_result = get_analysis_from_chatgpt(test_text)
+
+    # Далее передаём анализ в ChatGPT для получения подробных рекомендаций
+    recommendations = get_recommendations_from_chatgpt(analysis_result)
 
     result_msg = (
-        f"Распознанный текст:\n{test_text}\n\n"
-        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
+        f"Анализ:\n{analysis_result}\n\n"
+        f"Рекомендации:\n{recommendations}"
     )
     await chunked_send_text(update, context, result_msg)
 
@@ -112,16 +115,19 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Кажется, я не смог распознать текст анализа. Пожалуйста, загрузите более чёткое изображение.")
         return
 
-    # Сохраняем данные
+    # Сохраняем данные (при необходимости)
     user_id = update.effective_user.id
     save_blood_test(user_id, test_text)
 
-    # Получаем анализ от ChatGPT
-    chatgpt_analysis = get_analysis_from_chatgpt(test_text)
+    # Получаем анализ (резюме) от ChatGPT на основе распознанного текста
+    analysis_result = get_analysis_from_chatgpt(test_text)
+
+    # Передаём анализ в ChatGPT для получения подробных рекомендаций
+    recommendations = get_recommendations_from_chatgpt(analysis_result)
 
     result_msg = (
-        f"Распознанный текст:\n{test_text}\n\n"
-        f"Анализ от ChatGPT:\n{chatgpt_analysis}"
+        f"Анализ:\n{analysis_result}\n\n"
+        f"Рекомендации:\n{recommendations}"
     )
     await chunked_send_text(update, context, result_msg)
 
