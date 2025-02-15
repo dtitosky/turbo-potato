@@ -66,14 +66,24 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     file_name = document.file_name
     print(f"Получен документ: {file_name}, размер: {len(file_bytes)} байт")
     
+    await update.message.reply_text("🔍 Идет проверка и распознавание документа...")
+    
     # Получаем анализ с использованием ChatGPT Vision
     vision_analysis = get_analysis_from_chatgpt_vision(file_bytes, file_name)
+    
+    # Если получили сообщение об ошибке (не анализ крови), просто возвращаем его
+    if "К сожалению, загруженный файл не является анализом крови" in vision_analysis:
+        await chunked_send_text(update, context, vision_analysis)
+        return
+    
+    # Если это анализ крови, отправляем промежуточное сообщение
+    await update.message.reply_text("✅ Анализ крови успешно распознан. Пожалуйста, подождите, идет подробный анализ данных...")
     
     # Optionally можно сохранить результат в БД
     user_id = update.effective_user.id
     # save_blood_test(user_id, vision_analysis)
     
-    result_msg = f"Результат анализа от ChatGPT Vision:\n{vision_analysis}"
+    result_msg = vision_analysis
     await chunked_send_text(update, context, result_msg)
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -84,13 +94,23 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     file_name = "photo.jpg"  # Можно задать имя по умолчанию
     print(f"Получено фото, размер: {len(file_bytes)} байт")
     
+    await update.message.reply_text("🔍 Идет проверка и распознавание изображения...")
+    
     # Получаем анализ с использованием ChatGPT Vision
     vision_analysis = get_analysis_from_chatgpt_vision(file_bytes, file_name)
+    
+    # Если получили сообщение об ошибке (не анализ крови), просто возвращаем его
+    if "К сожалению, загруженный файл не является анализом крови" in vision_analysis:
+        await chunked_send_text(update, context, vision_analysis)
+        return
+    
+    # Если это анализ крови, отправляем промежуточное сообщение
+    await update.message.reply_text("✅ Анализ крови успешно распознан. Пожалуйста, подождите, идет подробный анализ данных...")
     
     user_id = update.effective_user.id
     # Optionally можно сохранить результат в БД
     
-    result_msg = f"Результат анализа от ChatGPT Vision:\n{vision_analysis}"
+    result_msg = vision_analysis
     await chunked_send_text(update, context, result_msg)
 
 def main():
