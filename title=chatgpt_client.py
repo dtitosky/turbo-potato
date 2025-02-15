@@ -4,8 +4,8 @@ import openai
 import base64
 
 def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
-    # Гипотетический URL для ChatGPT Vision. Реальная реализация зависит от официального API.
-    url = "https://api.openai.com/v1/chat/completions/vision"
+    # Используем стандартный endpoint для чат-комплишенов. Модель GPT-4 Turbo с поддержкой изображений.
+    url = "https://api.openai.com/v1/chat/completions"
     
     headers = {
         "Authorization": f"Bearer {openai.api_key}",
