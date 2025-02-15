@@ -43,7 +43,7 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
     Отправляет изображение в GPT-4 Vision API и получает анализ.
     """
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.Client().chat.completions.create(
             model="gpt-4-vision-preview",
             messages=[
                 {
