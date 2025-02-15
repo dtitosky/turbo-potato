@@ -16,11 +16,11 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
     
     # Формируем JSON‑payload с использованием ключей "prompt" и "image"
     payload = {
-        "model": "gpt-4-vision",
-        "prompt": "Проанализируй данное изображение анализа крови и выдай подробный, структурированный ответ.",
+        "model": "gpt-4-turbo",
+        "prompt": "Проанализируй это изображение анализа крови. Дай подробный анализ в следующем формате:\n1. Общий вывод\n2. Отклонения от нормы\n3. Рекомендации",
         "image": encoded_file,
         "temperature": 0.7,
-        "max_tokens": 800
+        "max_tokens": 1000
     }
     try:
         response = requests.post(url, headers=headers, json=payload)
