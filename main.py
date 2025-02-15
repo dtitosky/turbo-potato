@@ -56,9 +56,15 @@ async def chunked_send_text(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     Делит длинный текст на куски (не более 4096 символов) и отправляет их.
     """
     chunk_size = 4096
+    # Определяем chat_id в зависимости от типа update
+    if update.callback_query:
+        chat_id = update.callback_query.message.chat_id
+    else:
+        chat_id = update.effective_chat.id
+
     for i in range(0, len(text), chunk_size):
         await context.bot.send_message(
-            chat_id=update.effective_chat.id,
+            chat_id=chat_id,
             text=text[i : i + chunk_size]
         )
 
@@ -146,9 +152,8 @@ async def handle_recommendation_request(update: Update, context: ContextTypes.DE
         
         try:
             recommendations = get_nutrition_recommendations(context.user_data['last_analysis'])
-            # Создаем новый объект Update с сообщением из callback query
-            new_update = Update(update.update_id, message=query.message)
-            await chunked_send_text(new_update, context, recommendations)
+            # Передаем оригинальный update, содержащий callback_query
+            await chunked_send_text(update, context, recommendations)
         except Exception as e:
             print(f"Debug - Error in recommendations: {str(e)}")  # Добавляем отладочный вывод
             await query.message.reply_text("Извините, произошла ошибка при генерации рекомендаций. Попробуйте позже.")
