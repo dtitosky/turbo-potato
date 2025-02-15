@@ -56,12 +56,16 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
             images_base64 = []
             for page_num in range(len(pdf_document)):
                 page = pdf_document[page_num]
-                pix = page.get_pixmap()
+                # Увеличиваем разрешение для лучшего качества
+                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
                 img_data = pix.tobytes("jpeg")
                 base64_image = base64.b64encode(img_data).decode('utf-8')
                 images_base64.append(base64_image)
             
             pdf_document.close()
+            
+            # Добавляем отладочный вывод
+            print(f"Debug - PDF обработан, получено {len(images_base64)} страниц")
             
             # Формируем сообщения для каждой страницы
             messages = [
@@ -70,7 +74,7 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
                     "content": [
                         {
                             "type": "text",
-                            "text": f"Это страница {i+1} из {len(images_base64)} анализа крови. Проанализируй все данные."
+                            "text": "Проанализируй это изображение анализа крови. Дай подробный анализ в следующем формате:\n1. Общий вывод\n2. Отклонения от нормы\n3. Рекомендации"
                         },
                         {
                             "type": "image_url",
@@ -110,12 +114,19 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
             ]
         
         # Сначала проверяем, является ли это анализом крови
+        # Для PDF берем первую страницу для проверки
+        check_image = base64_image if not file_name.lower().endswith('.pdf') else images_base64[0]
+        
+        # Добавляем отладочный вывод
+        print(f"Debug - Отправляем изображение на проверку, размер base64: {len(check_image)}")
+        
         validation_response = openai.Client().chat.completions.create(
             model="gpt-4-turbo",
             messages=[
                 {
                     "role": "system",
-                    "content": "Ты эксперт по медицинским анализам. Твоя задача - определить, является ли изображение анализом крови."
+                    "content": """Ты эксперт по медицинским анализам. Твоя задача - определить, является ли изображение анализом крови.
+                    Ответь 'да', если видишь любые медицинские показатели крови, даже если изображение не очень четкое."""
                 },
                 {
                     "role": "user",
@@ -127,7 +138,7 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image if not file_name.lower().endswith('.pdf') else images_base64[0]}"
+                                "url": f"data:image/jpeg;base64,{check_image}"
                             }
                         }
                     ]
@@ -135,6 +146,9 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
             ],
             max_tokens=10
         )
+        
+        # Добавляем отладочный вывод
+        print(f"Debug - Ответ валидации: {validation_response.choices[0].message.content}")
         
         is_blood_test = validation_response.choices[0].message.content.strip().lower()
         
