@@ -25,7 +25,7 @@ def get_analysis_from_chatgpt(recognized_text: str) -> str:
 {recognized_text}
 """
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.Client().chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Ты являешься экспертом в области анализа крови. Дай подробный и структурированный анализ данных."},
@@ -34,7 +34,7 @@ def get_analysis_from_chatgpt(recognized_text: str) -> str:
             temperature=0.7,
             max_tokens=800
         )
-        return response.choices[0].message.content.strip()
+        return response.choices[0].message.content
     except Exception as e:
         return f"Ошибка при обращении к ChatGPT: {e}"
 
@@ -44,7 +44,7 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
     """
     try:
         response = openai.Client().chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4-vision",
             messages=[
                 {
                     "role": "user",
