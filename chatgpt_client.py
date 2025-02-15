@@ -141,10 +141,6 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
         if is_blood_test != "да":
             return "К сожалению, загруженный файл не является анализом крови. Пожалуйста, загрузите корректный анализ крови."
         
-        # Отправляем промежуточное сообщение через контекст
-        if 'update' in locals() and 'context' in locals():
-            await update.message.reply_text("✅ Анализ крови успешно распознан. Пожалуйста, подождите, идет подробный анализ данных...")
-        
         # Если это анализ крови, получаем детальный анализ
         response = openai.Client().chat.completions.create(
             model="gpt-4-turbo",
