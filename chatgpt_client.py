@@ -43,8 +43,11 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
     Отправляет изображение в GPT-4 Vision API и получает анализ.
     """
     try:
+        # Кодируем изображение в base64
+        base64_image = base64.b64encode(file_bytes).decode('utf-8')
+        
         response = openai.Client().chat.completions.create(
-            model="gpt-4-vision",
+            model="gpt-4-turbo",
             messages=[
                 {
                     "role": "user",
@@ -56,7 +59,7 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64.b64encode(file_bytes).decode('utf-8')}"
+                                "url": f"data:image/jpeg;base64,{base64_image}"
                             }
                         }
                     ]
@@ -67,4 +70,4 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
         return response.choices[0].message.content
     except Exception as e:
         print(f"Debug - Error details: {str(e)}")  # Добавляем отладочный вывод
-        return f"Ошибка при обращении к GPT-4 Vision: {str(e)}" 
+        return f"Ошибка при обращении к GPT-4 Vision: {e}" 
