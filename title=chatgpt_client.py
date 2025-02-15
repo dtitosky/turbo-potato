@@ -4,6 +4,7 @@ import openai
 import base64
 
 def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
+    # Гипотетический URL для ChatGPT Vision. Реальная реализация зависит от официального API.
     url = "https://api.openai.com/v1/chat/completions/vision"
     
     headers = {
@@ -12,16 +13,12 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
     }
     # Кодируем файл в base64
     encoded_file = base64.b64encode(file_bytes).decode("utf-8")
+    
+    # Формируем JSON‑payload с использованием ключей "prompt" и "image"
     payload = {
         "model": "gpt-4-vision",
-        "file": {
-            "filename": file_name,
-            "data": encoded_file
-        },
-        "messages": [
-            {"role": "system", "content": "Ты являешься экспертом в области анализа медицинских изображений."},
-            {"role": "user", "content": "Проанализируй прикрепленный файл с анализом крови и выдай подробный, структурированный ответ."}
-        ],
+        "prompt": "Проанализируй данное изображение анализа крови и выдай подробный, структурированный ответ.",
+        "image": encoded_file,
         "temperature": 0.7,
         "max_tokens": 800
     }
