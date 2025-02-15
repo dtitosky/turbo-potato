@@ -2,6 +2,7 @@ import os
 import openai
 import json
 import requests
+import base64
 
 # Устанавливаем ключ OpenAI из переменных окружения
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -39,34 +40,46 @@ def get_analysis_from_chatgpt(recognized_text: str) -> str:
 
 def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
     """
-    Отправляет файл (изображение или PDF) напрямую в ChatGPT Vision и возвращает результат анализа.
-    Внимание: данная функция использует гипотетический API-вызов `openai.ChatCompletion.create_vision`.
-    Реальная реализация может отличаться, когда ChatGPT Vision будет доступен через официальный API.
+    Отправляет изображение в GPT-4 Vision API и получает анализ.
     """
-    # Гипотетический URL для ChatGPT Vision. Реальная реализация зависит от официального API.
-    url = "https://api.openai.com/v1/chat/completions/vision"
+    url = "https://api.openai.com/v1/chat/completions"
     
     headers = {
-        "Authorization": f"Bearer {openai.api_key}"
+        "Authorization": f"Bearer {openai.api_key}",
+        "Content-Type": "application/json"
     }
-    # Передаём файл в виде multipart/form-data.
-    files = {
-        "file": (file_name, file_bytes, "application/octet-stream")
-    }
-    # Дополнительные параметры запроса передаются в поле "payload" как JSON-строка.
-    data = {
-        "model": "gpt-4-vision",
+    
+    # Кодируем изображение в base64
+    encoded_image = base64.b64encode(file_bytes).decode('utf-8')
+    
+    # Формируем payload согласно документации OpenAI
+    payload = {
+        "model": "gpt-4-vision-preview",
         "messages": [
-            {"role": "system", "content": "Ты являешься экспертом в области анализа медицинских изображений."},
-            {"role": "user", "content": "Проанализируй прикрепленный файл с анализом крови и выдай подробный, структурированный ответ."}
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Проанализируй это изображение анализа крови. Дай подробный анализ в следующем формате:\n1. Общий вывод\n2. Отклонения от нормы\n3. Рекомендации"
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{encoded_image}"
+                        }
+                    }
+                ]
+            }
         ],
-        "temperature": 0.7,
-        "max_tokens": 800
+        "max_tokens": 1000
     }
+    
     try:
-        response = requests.post(url, headers=headers, files=files, data={"payload": json.dumps(data)})
-        response.raise_for_status()
-        rjson = response.json()
-        return rjson["choices"][0]["message"]["content"].strip()
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()  # Проверяем статус ответа
+        print("Debug - Response:", response.text)  # Добавляем отладочный вывод
+        return response.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        return f"Ошибка при обращении к ChatGPT Vision: {e}" 
+        print(f"Debug - Error details: {str(e)}")  # Добавляем отладочный вывод
+        return f"Ошибка при обращении к GPT-4 Vision: {str(e)}" 
