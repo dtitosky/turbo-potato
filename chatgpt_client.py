@@ -43,7 +43,8 @@ def get_analysis_from_chatgpt(recognized_text: str) -> str:
 
 def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
     """
-    Отправляет изображение в GPT-4 Vision API и получает анализ.
+    Отправляет изображение в GPT-4 Vision API, проверяет валидность анализа крови
+    и при положительном результате выдает структурированный анализ на русском языке.
     """
     try:
         # Проверяем расширение файла
@@ -108,12 +109,66 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
                 }
             ]
         
+        # Сначала проверяем, является ли это анализом крови
+        validation_response = openai.Client().chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Ты эксперт по медицинским анализам. Твоя задача - определить, является ли изображение анализом крови."
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Проверь, является ли это изображение анализом крови. Ответь только 'да' или 'нет'."
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image if not file_name.lower().endswith('.pdf') else images_base64[0]}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=10
+        )
+        
+        is_blood_test = validation_response.choices[0].message.content.strip().lower()
+        
+        if is_blood_test != "да":
+            return "К сожалению, загруженный файл не является анализом крови. Пожалуйста, загрузите корректный анализ крови."
+        
+        # Если это анализ крови, получаем детальный анализ
         response = openai.Client().chat.completions.create(
             model="gpt-4-turbo",
-            messages=messages,
+            messages=[
+                {
+                    "role": "system",
+                    "content": """Ты опытный врач-лаборант. Проанализируй данные анализа крови и предоставь структурированный отчет 
+                    на русском языке в следующем формате:
+                    1. ОБЩЕЕ ЗАКЛЮЧЕНИЕ
+                    2. ОТКЛОНЕНИЯ ОТ НОРМЫ (если есть)
+                    3. ВОЗМОЖНЫЕ ПРИЧИНЫ ОТКЛОНЕНИЙ
+                    4. РЕКОМЕНДАЦИИ
+                    
+                    Используй понятный язык, избегай сложных медицинских терминов."""
+                }
+            ] + messages,
             max_tokens=1000
         )
-        return response.choices[0].message.content
+        
+        analysis_result = response.choices[0].message.content
+        
+        # Форматируем финальный ответ
+        return f"""РЕЗУЛЬТАТ АНАЛИЗА:
+
+{analysis_result}
+
+Примечание: Данный анализ является предварительным и не заменяет консультацию врача."""
+
     except Exception as e:
         print(f"Debug - Error details: {str(e)}")  # Добавляем отладочный вывод
         return f"Ошибка при обращении к GPT-4 Vision: {e}" 
