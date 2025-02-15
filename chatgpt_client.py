@@ -244,3 +244,36 @@ def get_analysis_from_chatgpt_vision(file_bytes: bytes, file_name: str) -> str:
     except Exception as e:
         print(f"Debug - Error details: {str(e)}")  # Добавляем отладочный вывод
         return f"Ошибка при обращении к GPT-4 Vision: {e}" 
+
+def get_nutrition_recommendations(analysis_text: str) -> str:
+    """
+    Генерирует рекомендации по питанию на основе результатов анализов
+    """
+    try:
+        response = openai.Client().chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """Ты опытный диетолог. На основе предоставленных результатов анализов крови 
+                    составь персонализированные рекомендации по питанию.
+                    
+                    Формат ответа:
+                    1. РЕКОМЕНДУЕМЫЕ ПРОДУКТЫ
+                    - список полезных продуктов с кратким обоснованием
+                    
+                    2. ПРОДУКТЫ К ОГРАНИЧЕНИЮ
+                    - список продуктов, которые следует ограничить
+                    
+                    3. ОБЩИЕ РЕКОМЕНДАЦИИ ПО РЕЖИМУ ПИТАНИЯ"""
+                },
+                {
+                    "role": "user",
+                    "content": f"Вот результаты анализов крови:\n{analysis_text}\n\nСоставь рекомендации по питанию."
+                }
+            ],
+            max_tokens=1000
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Ошибка при генерации рекомендаций: {e}" 
