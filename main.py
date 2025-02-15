@@ -19,7 +19,7 @@ from io import BytesIO
 from config import API_TOKEN
 from analysis import analyze_blood_data
 from database import create_tables, save_blood_test, get_user_tests
-from chatgpt_client import get_analysis_from_chatgpt_vision
+from chatgpt_client import get_analysis_from_chatgpt_vision, get_nutrition_recommendations
 
 # Логирование
 logging.basicConfig(
