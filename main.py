@@ -146,8 +146,11 @@ async def handle_recommendation_request(update: Update, context: ContextTypes.DE
         
         try:
             recommendations = get_nutrition_recommendations(context.user_data['last_analysis'])
-            await chunked_send_text(update, context, recommendations)
+            # Создаем новый объект Update с сообщением из callback query
+            new_update = Update(update.update_id, message=query.message)
+            await chunked_send_text(new_update, context, recommendations)
         except Exception as e:
+            print(f"Debug - Error in recommendations: {str(e)}")  # Добавляем отладочный вывод
             await query.message.reply_text("Извините, произошла ошибка при генерации рекомендаций. Попробуйте позже.")
 
 def main():

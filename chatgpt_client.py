@@ -250,6 +250,7 @@ def get_nutrition_recommendations(analysis_text: str) -> str:
     Генерирует рекомендации по питанию на основе результатов анализов
     """
     try:
+        print(f"Debug - Sending analysis for recommendations: {analysis_text[:100]}...")  # Показываем начало текста анализа
         response = openai.Client().chat.completions.create(
             model="gpt-4-turbo",
             messages=[
@@ -274,6 +275,8 @@ def get_nutrition_recommendations(analysis_text: str) -> str:
             ],
             max_tokens=1000
         )
+        print("Debug - Got response from GPT")  # Подтверждаем получение ответа
         return response.choices[0].message.content
     except Exception as e:
+        print(f"Debug - Error in get_nutrition_recommendations: {str(e)}")  # Детальный вывод ошибки
         return f"Ошибка при генерации рекомендаций: {e}" 
